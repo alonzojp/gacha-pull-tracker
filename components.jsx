@@ -209,8 +209,10 @@ function LineChart({ data, width = 720, height = 240, forecastDays = 0, perDay =
     : '';
 
   const yTicks = useMemo(() => {
-    const step = points.yMax / 4;
-    return [0, 1, 2, 3, 4].map((i) => Math.round(i * step));
+    const rawStep = points.yMax / 4;
+    const mag = Math.pow(10, Math.floor(Math.log10(rawStep || 1)));
+    const step = Math.max(1, Math.ceil(rawStep / mag) * mag);
+    return [0, 1, 2, 3, 4].map((i) => i * step);
   }, [points.yMax]);
 
   const xTicks = useMemo(() => {

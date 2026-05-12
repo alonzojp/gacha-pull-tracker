@@ -3,7 +3,7 @@ const { useState: useStateA, useEffect: useEffectA, Fragment } = React;
 
 function App() {
   const params = new URLSearchParams(location.search);
-  const themeName = params.get('theme') || 'cipher';
+  const themeName = params.get('theme') || 'lumen';
   window.__themeName = themeName;
 
   const storageKey = 'gachapull:' + themeName;

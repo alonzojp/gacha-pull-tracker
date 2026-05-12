@@ -7,19 +7,19 @@ function Dashboard({ store, onUpdate, onSignOut, onOpenSettings, themeName }) {
   const [showCustom, setShowCustom] = useStateD(false);
   const [editing, setEditing] = useStateD(null);
   const [showShare, setShowShare] = useStateD(false);
-  const [editingBanner, setEditingBanner] = useStateD(true);
+  const [showBannerModal, setShowBannerModal] = useStateD(false);
   const [bannerForm, setBannerForm] = useStateD({ name: '', date: '', goalPulls: '' });
 
   const active = store.games.find((g) => g.id === activeId) || store.games[0];
 
-  useEffectD(() => {
-    setEditingBanner(!active?.banner);
+  const openBannerModal = () => {
     setBannerForm({
       name: active?.banner?.name || '',
       date: active?.banner?.date || '',
       goalPulls: active?.banner?.goalPulls?.toString() || '',
     });
-  }, [active?.id]);
+    setShowBannerModal(true);
+  };
 
   const addGame = (g) => {
     const games = [...store.games, { ...g, latest: {}, snapshots: [] }];
@@ -49,14 +49,13 @@ function Dashboard({ store, onUpdate, onSignOut, onOpenSettings, themeName }) {
       ? { ...g, banner: { name: bannerForm.name, date: bannerForm.date, goalPulls: Number(bannerForm.goalPulls) } }
       : g);
     onUpdate({ ...store, games });
-    setEditingBanner(false);
+    setShowBannerModal(false);
   };
 
   const clearBanner = () => {
     const games = store.games.map((g) => g.id === active.id ? { ...g, banner: null } : g);
     onUpdate({ ...store, games });
-    setBannerForm({ name: '', date: '', goalPulls: '' });
-    setEditingBanner(true);
+    setShowBannerModal(false);
   };
 
   if (!active) return null;
@@ -157,37 +156,15 @@ function Dashboard({ store, onUpdate, onSignOut, onOpenSettings, themeName }) {
           <Card className="dash-banner" padding="lg">
             <div className="dash-banner-head">
               <span className="dash-banner-tag">Banner goal</span>
-              {active.banner && !editingBanner && (
-                <span className="dash-banner-name">{active.banner.name || 'Unnamed banner'}</span>
-              )}
-              {active.banner && !editingBanner && (
-                <button className="btn btn-ghost btn-sm" onClick={() => setEditingBanner(true)}>Edit</button>
-              )}
+              {active.banner && <span className="dash-banner-name">{active.banner.name || 'Unnamed'}</span>}
+              <button className="btn btn-ghost btn-sm" onClick={openBannerModal}>
+                {active.banner ? 'Edit' : 'Set one'}
+              </button>
             </div>
-            {editingBanner ? (
-              <div className="banner-form">
-                <Input label="Banner name (optional)" value={bannerForm.name}
-                  onChange={(v) => setBannerForm((f) => ({ ...f, name: v }))}
-                  placeholder="e.g. Character Event Warp" />
-                <div className="banner-form-row2">
-                  <Input label="End date" type="date" value={bannerForm.date}
-                    onChange={(v) => setBannerForm((f) => ({ ...f, date: v }))} />
-                  <Input label="Pull goal" type="number" value={bannerForm.goalPulls}
-                    onChange={(v) => setBannerForm((f) => ({ ...f, goalPulls: v }))}
-                    placeholder="e.g. 90" />
-                </div>
-                <div style={{ display: 'flex', gap: 8 }}>
-                  <Button onClick={saveBanner} disabled={!bannerForm.date || !bannerForm.goalPulls}>Set goal</Button>
-                  {active.banner && (
-                    <button className="btn btn-ghost" onClick={() => setEditingBanner(false)}>Cancel</button>
-                  )}
-                </div>
-              </div>
-            ) : (() => {
+            {active.banner ? (() => {
               const daysUntil = Math.max(0, Math.round((new Date(active.banner.date) - new Date()) / 86400000));
               const projected = window.forecastBy(stats.current, stats.perDay, daysUntil);
               const goal = active.banner.goalPulls;
-              const onTrack = projected >= goal;
               return (
                 <div className="dash-banner-body">
                   <div className="dash-banner-days">
@@ -208,15 +185,16 @@ function Dashboard({ store, onUpdate, onSignOut, onOpenSettings, themeName }) {
                         style={{ width: `${Math.min(100, (projected / goal) * 100)}%` }} />
                     </div>
                     <div className="dash-banner-forecast-pity">
-                      {onTrack
+                      {projected >= goal
                         ? <><span className="dash-banner-pity-on">●</span> On track</>
                         : <><span className="dash-banner-pity-off">●</span> Need {fmt(goal - projected, 1)} more</>}
                     </div>
-                    <button className="btn btn-ghost btn-sm" style={{ marginTop: 6, alignSelf: 'flex-start' }} onClick={clearBanner}>Clear</button>
                   </div>
                 </div>
               );
-            })()}
+            })() : (
+              <div className="banner-empty">Set a date and pull target to see your forecast on the chart.</div>
+            )}
           </Card>
 
           <Card className="dash-res" padding="lg">
@@ -256,6 +234,27 @@ function Dashboard({ store, onUpdate, onSignOut, onOpenSettings, themeName }) {
       <CustomGameModal open={!!editing} initial={editing} onClose={() => setEditing(null)}
         onSave={(g) => { onUpdate({ ...store, games: store.games.map((x) => x.id === g.id ? { ...x, ...g } : x) }); setEditing(null); }} />
       <ShareModal open={showShare} onClose={() => setShowShare(false)} game={active} stats={stats} snapshots={snapshots} user={store.user} themeName={themeName} />
+      <Modal open={showBannerModal} onClose={() => setShowBannerModal(false)} title="Banner goal" width={440}>
+        <div className="logsnap">
+          <Input label="Banner name (optional)" value={bannerForm.name}
+            onChange={(v) => setBannerForm((f) => ({ ...f, name: v }))}
+            placeholder="e.g. Character Event Warp" />
+          <div className="logsnap-fields">
+            <Input label="End date" type="date" value={bannerForm.date}
+              onChange={(v) => setBannerForm((f) => ({ ...f, date: v }))} />
+            <Input label="Pull goal" type="number" value={bannerForm.goalPulls}
+              onChange={(v) => setBannerForm((f) => ({ ...f, goalPulls: v }))}
+              placeholder="e.g. 90" />
+          </div>
+          <div className="cg-actions">
+            {active.banner && (
+              <button className="btn btn-danger btn-sm" onClick={clearBanner}>Remove</button>
+            )}
+            <button className="btn btn-ghost" onClick={() => setShowBannerModal(false)}>Cancel</button>
+            <Button onClick={saveBanner} disabled={!bannerForm.date || !bannerForm.goalPulls}>Save</Button>
+          </div>
+        </div>
+      </Modal>
     </div>
   );
 }

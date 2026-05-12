@@ -257,6 +257,9 @@ function LineChart({ data, width = 720, height = 240, forecastDays = 0, perDay =
         {areaPath && <path d={areaPath} fill="url(#chart-area)" />}
         {linePath && <path d={linePath} className="chart-line" />}
         {projPath && <path d={projPath} className="chart-proj" />}
+        {points.real.length === 1 && (
+          <circle cx={sx(points.real[0].t)} cy={sy(points.real[0].y)} r="5" className="chart-dot" />
+        )}
         {hover && (
           <g>
             <line x1={sx(hover.t)} x2={sx(hover.t)} y1={padding.top} y2={height - padding.bottom} className="chart-cross" />

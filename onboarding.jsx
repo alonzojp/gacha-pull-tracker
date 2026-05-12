@@ -88,7 +88,7 @@ function Onboarding({ onComplete, presets, onBack }) {
       </div>
       <div className="onb-body">
         <h1 className="onb-title">Enter your current totals.</h1>
-        <p className="onb-sub">Don't have exact numbers? Take a screenshot, type rough estimates, and refine later. We use these to compute today's pull power.</p>
+        <p className="onb-sub">Rough numbers are fine — you can update them anytime.</p>
         <div className="onb-games">
           {selected.map((g) => {
             const c = counts[g.id] || {};

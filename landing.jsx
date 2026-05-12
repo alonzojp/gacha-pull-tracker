@@ -22,35 +22,33 @@ function Landing({ onStart, onSignIn, themeName }) {
 
       <section className="hero">
         <div className="hero-eyebrow">
-          <span className="hero-dot" /> Free · No game account required
+          <span className="hero-dot" /> Free · No account needed
         </div>
         <h1 className="hero-title">
-          Track every pull. <br />
-          Plan every banner.
+          Know your pulls.
         </h1>
         <p className="hero-sub">
-          A snapshot-based ledger for gacha resources across every game you play.
-          See your real pull power, weekly gain rate, and whether you'll hit pity
-          before that limited banner ends.
+          Log your gacha resources, see how many pulls you have, and check
+          if you'll have enough before a banner ends.
         </p>
         <div className="hero-actions">
-          <Button onClick={onStart} size="lg">Start tracking — it's free</Button>
-          <button className="btn btn-ghost btn-lg" onClick={onSignIn}>I already have an account</button>
+          <Button onClick={onStart} size="lg">Get started</Button>
+          <button className="btn btn-ghost btn-lg" onClick={onSignIn}>Sign in</button>
         </div>
         <div className="hero-meta">
           <span><span className="num">9</span> preset games</span>
           <span className="hero-meta-dot" />
-          <span>Build your own templates</span>
+          <span>Custom games</span>
           <span className="hero-meta-dot" />
-          <span>Local-first data</span>
+          <span>Saves locally</span>
         </div>
       </section>
 
       <section className="landing-demo">
         <div className="landing-demo-head">
           <div>
-            <div className="landing-demo-eyebrow">Live preview · sample account</div>
-            <h2>Your dashboard, on day one.</h2>
+            <div className="landing-demo-eyebrow">Sample account</div>
+            <h2>What it looks like</h2>
           </div>
         </div>
         <div className="landing-demo-card">
@@ -62,35 +60,35 @@ function Landing({ onStart, onSignIn, themeName }) {
         <div className="feature">
           <div className="feature-glyph">◆</div>
           <h3>Snapshot logging</h3>
-          <p>Drop in your current totals whenever you remember. The app computes deltas, gain rates, and totals. No manual transaction entry.</p>
+          <p>Enter your current resource counts whenever. The app calculates your pull total and tracks it over time.</p>
         </div>
         <div className="feature">
           <div className="feature-glyph">◑</div>
-          <h3>Forecast by date</h3>
-          <p>Set a banner end date. See how many pulls you'll likely have by then at your current weekly gain — and whether you're on track for pity.</p>
+          <h3>Banner forecast</h3>
+          <p>Set a banner end date and see how many pulls you'll have by then based on your recent gain rate.</p>
         </div>
         <div className="feature">
           <div className="feature-glyph">⬡</div>
           <h3>Custom games</h3>
-          <p>Building a tracker for an indie gacha or alpha test? Define your own resources and conversion rates in under a minute.</p>
+          <p>Game not on the list? Add it yourself with custom resources and conversion rates.</p>
         </div>
         <div className="feature">
           <div className="feature-glyph">⤴</div>
-          <h3>Shareable summaries</h3>
-          <p>Export a clean summary card to send to your guild, or pin a JSON snapshot of your entire history for safekeeping.</p>
+          <h3>Share</h3>
+          <p>Generate a summary card to share with friends or your server.</p>
         </div>
       </section>
 
       <section className="cta">
-        <h2>Pull with intent.</h2>
-        <p>Three minutes to set up. A lifetime of fewer regretted pulls.</p>
-        <Button onClick={onStart} size="lg">Create your account</Button>
+        <h2>Get started</h2>
+        <p>Takes about a minute to set up.</p>
+        <Button onClick={onStart} size="lg">Create an account</Button>
       </section>
 
       <footer className="landing-foot">
         <span>{themeName === 'cipher' ? 'CIPHER' : 'Lumen'} · pull tracker</span>
         <span className="landing-foot-sep" />
-        <span>Not affiliated with any game studio. Resource conversion data is editable per game.</span>
+        <span>Not affiliated with any game studio. Conversion rates are editable.</span>
       </footer>
     </div>
   );
@@ -145,11 +143,11 @@ function Auth({ mode = 'signup', onComplete, onSwitchMode, onBack, onDemo }) {
         <div className="auth-brand">
           <BrandLogo size={36} />
         </div>
-        <h1 className="auth-title">{mode === 'signup' ? 'Create your tracker' : 'Welcome back'}</h1>
+        <h1 className="auth-title">{mode === 'signup' ? 'Sign up' : 'Sign in'}</h1>
         <p className="auth-sub">
           {mode === 'signup'
-            ? 'No game account needed. Your data stays in your browser.'
-            : 'Sign in to pick up your snapshot history.'}
+            ? 'Data is stored locally in your browser.'
+            : 'Good to have you back.'}
         </p>
         <form className="auth-form" onSubmit={submit}>
           {mode === 'signup' && (

@@ -174,7 +174,8 @@ function LineChart({ data, width = 720, height = 240, forecastDays = 0, perDay =
     const t0 = new Date(data[0].ts).getTime();
     const tLast = new Date(data[data.length - 1].ts).getTime();
     const dayMs = 86400000;
-    const tEnd = tLast + forecastDays * dayMs;
+    const bTime = bannerDate ? new Date(bannerDate).getTime() : 0;
+    const tEnd = Math.max(tLast + forecastDays * dayMs, bTime);
     const real = data.map((d) => ({ t: new Date(d.ts).getTime(), y: d.pulls, ts: d.ts }));
     const proj = [];
     if (forecastDays > 0 && perDay > 0) {
@@ -185,8 +186,6 @@ function LineChart({ data, width = 720, height = 240, forecastDays = 0, perDay =
         proj.push({ t, y: last.y + ((t - last.t) / dayMs) * perDay });
       }
     }
-    const bTime = bannerDate ? new Date(bannerDate).getTime() : 0;
-    const tEnd = Math.max(tLast + forecastDays * dayMs, bTime);
     const ys = [...real.map((p) => p.y), ...proj.map((p) => p.y)];
     if (goalPulls > 0) ys.push(goalPulls);
     const yMax = Math.max(...ys) * 1.12;

@@ -165,7 +165,7 @@ function LineChart({ data, width = 720, height = 240, forecastDays = 0, perDay =
   const ref = useRef(null);
   const [hover, setHover] = useState(null);
 
-  const padding = { top: 16, right: 16, bottom: 28, left: 44 };
+  const padding = { top: 28, right: 16, bottom: 28, left: 44 };
   const w = width - padding.left - padding.right;
   const h = height - padding.top - padding.bottom;
 

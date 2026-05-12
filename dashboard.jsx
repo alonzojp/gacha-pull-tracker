@@ -34,18 +34,7 @@ function Dashboard({ store, onUpdate, onSignOut, onOpenSettings, themeName }) {
 
   if (!active) return null;
 
-  const snapshots = active.snapshots && active.snapshots.length
-    ? active.snapshots
-    : (() => {
-        const seed = active.id.split('').reduce((a, c) => a + c.charCodeAt(0), 0);
-        const generated = window.generateSampleSnapshots(active, seed);
-        if (active.latest && Object.keys(active.latest).length) {
-          const today = new Date().toISOString().slice(0, 10);
-          const userPulls = window.computePulls(active.resources, active.latest);
-          generated[generated.length - 1] = { ts: today, counts: { ...active.latest }, pulls: userPulls };
-        }
-        return generated;
-      })();
+  const snapshots = (active.snapshots && active.snapshots.length) ? active.snapshots : [];
 
   const stats = window.computeStats(snapshots);
 
@@ -59,9 +48,7 @@ function Dashboard({ store, onUpdate, onSignOut, onOpenSettings, themeName }) {
         <div className="dash-side-section">My games</div>
         <div className="dash-side-games">
           {store.games.map((g) => {
-            const gSnaps = g.snapshots && g.snapshots.length
-              ? g.snapshots
-              : window.generateSampleSnapshots(g, g.id.split('').reduce((a, c) => a + c.charCodeAt(0), 0));
+            const gSnaps = (g.snapshots && g.snapshots.length) ? g.snapshots : [];
             const gStats = window.computeStats(gSnaps);
             return (
               <button key={g.id} onClick={() => setActiveId(g.id)}
@@ -97,7 +84,7 @@ function Dashboard({ store, onUpdate, onSignOut, onOpenSettings, themeName }) {
                 {active.custom && <button className="dash-head-edit" onClick={() => setEditing(active)} title="Edit game">⚙</button>}
               </div>
               <div className="dash-head-sub">
-                Last snapshot · <span className="num">{snapshots[snapshots.length - 1].ts}</span>
+                Last snapshot · <span className="num">{snapshots.length ? snapshots[snapshots.length - 1].ts : '—'}</span>
                 <span className="dash-head-dot" />
                 <span className="num">{snapshots.length}</span> entries
               </div>
@@ -130,7 +117,7 @@ function Dashboard({ store, onUpdate, onSignOut, onOpenSettings, themeName }) {
               <span className="legend-dot legend-proj" /> Forecast
             </div>
           </div>
-          <Card padding="lg">
+          <Card padding="lg" className="dash-chart-card">
             <LineChart data={snapshots} width={760} height={260}
               forecastDays={Math.max(active.bannerDaysFromNow ?? 14, 7)} perDay={stats.perDay} />
           </Card>
@@ -179,7 +166,7 @@ function Dashboard({ store, onUpdate, onSignOut, onOpenSettings, themeName }) {
             </div>
             <div className="dash-res-list">
               {active.resources.map((r) => {
-                const c = Number(active.latest?.[r.id] ?? snapshots[snapshots.length - 1].counts[r.id] ?? 0);
+                const c = Number(active.latest?.[r.id] ?? (snapshots.length ? snapshots[snapshots.length - 1].counts[r.id] : 0) ?? 0);
                 const inPulls = c / r.perPull;
                 return (
                   <div className="dash-res-row" key={r.id}>

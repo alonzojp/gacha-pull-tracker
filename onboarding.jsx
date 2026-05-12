@@ -20,10 +20,16 @@ function Onboarding({ onComplete, presets, onBack }) {
   };
 
   const finish = () => {
-    const games = selected.map((g) => ({
-      ...g,
-      latest: counts[g.id] || {},
-    }));
+    const today = new Date().toISOString().slice(0, 10);
+    const games = selected.map((g) => {
+      const gameCounts = counts[g.id] || {};
+      const pulls = window.computePulls(g.resources, gameCounts);
+      return {
+        ...g,
+        latest: gameCounts,
+        snapshots: [{ ts: today, counts: gameCounts, pulls }],
+      };
+    });
     onComplete({ games });
   };
 

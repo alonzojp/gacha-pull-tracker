@@ -845,7 +845,9 @@ input[type='number'].field-input { font-family: var(--font-num); }
   flex-shrink: 0;
 }
 
-.dash-banner {}
+.dash-banner { display: flex; flex-direction: column; }
+.banner-form { display: flex; flex-direction: column; gap: 10px; }
+.banner-form-row2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
 .dash-banner-head {
   display: flex; align-items: center; gap: 10px; margin-bottom: 14px;
 }

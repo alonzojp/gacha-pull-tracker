@@ -7,8 +7,19 @@ function Dashboard({ store, onUpdate, onSignOut, onOpenSettings, themeName }) {
   const [showCustom, setShowCustom] = useStateD(false);
   const [editing, setEditing] = useStateD(null);
   const [showShare, setShowShare] = useStateD(false);
+  const [editingBanner, setEditingBanner] = useStateD(true);
+  const [bannerForm, setBannerForm] = useStateD({ name: '', date: '', goalPulls: '' });
 
   const active = store.games.find((g) => g.id === activeId) || store.games[0];
+
+  useEffectD(() => {
+    setEditingBanner(!active?.banner);
+    setBannerForm({
+      name: active?.banner?.name || '',
+      date: active?.banner?.date || '',
+      goalPulls: active?.banner?.goalPulls?.toString() || '',
+    });
+  }, [active?.id]);
 
   const addGame = (g) => {
     const games = [...store.games, { ...g, latest: {}, snapshots: [] }];
@@ -30,6 +41,22 @@ function Dashboard({ store, onUpdate, onSignOut, onOpenSettings, themeName }) {
     const games = store.games.filter((g) => g.id !== id);
     onUpdate({ ...store, games });
     if (activeId === id && games.length) setActiveId(games[0].id);
+  };
+
+  const saveBanner = () => {
+    if (!bannerForm.date || !bannerForm.goalPulls) return;
+    const games = store.games.map((g) => g.id === active.id
+      ? { ...g, banner: { name: bannerForm.name, date: bannerForm.date, goalPulls: Number(bannerForm.goalPulls) } }
+      : g);
+    onUpdate({ ...store, games });
+    setEditingBanner(false);
+  };
+
+  const clearBanner = () => {
+    const games = store.games.map((g) => g.id === active.id ? { ...g, banner: null } : g);
+    onUpdate({ ...store, games });
+    setBannerForm({ name: '', date: '', goalPulls: '' });
+    setEditingBanner(true);
   };
 
   if (!active) return null;
@@ -119,44 +146,77 @@ function Dashboard({ store, onUpdate, onSignOut, onOpenSettings, themeName }) {
           </div>
           <Card padding="lg" className="dash-chart-card">
             <LineChart data={snapshots} width={760} height={260}
-              forecastDays={Math.max(active.bannerDaysFromNow ?? 14, 7)} perDay={stats.perDay} />
+              forecastDays={Math.max(active.banner?.date ? Math.max(0, Math.round((new Date(active.banner.date) - new Date()) / 86400000)) : 14, 7)}
+              perDay={stats.perDay}
+              bannerDate={active.banner?.date || null}
+              goalPulls={active.banner?.goalPulls || 0} />
           </Card>
         </section>
 
         <section className="dash-bottom">
           <Card className="dash-banner" padding="lg">
             <div className="dash-banner-head">
-              <span className="dash-banner-tag">Banner countdown</span>
-              <span className="dash-banner-name">{active.bannerName || 'Next limited banner'}</span>
+              <span className="dash-banner-tag">Banner goal</span>
+              {active.banner && !editingBanner && (
+                <span className="dash-banner-name">{active.banner.name || 'Unnamed banner'}</span>
+              )}
+              {active.banner && !editingBanner && (
+                <button className="btn btn-ghost btn-sm" onClick={() => setEditingBanner(true)}>Edit</button>
+              )}
             </div>
-            <div className="dash-banner-body">
-              <div className="dash-banner-days">
-                <span className="num">{active.bannerDaysFromNow ?? 14}</span>
-                <span className="dash-banner-days-l">days</span>
-              </div>
-              <div className="dash-banner-forecast">
-                <div className="dash-banner-forecast-row">
-                  <span>At banner end</span>
-                  <span className="num">{fmt(window.forecastBy(stats.current, stats.perDay, active.bannerDaysFromNow ?? 14), 0)} pulls</span>
+            {editingBanner ? (
+              <div className="banner-form">
+                <Input label="Banner name (optional)" value={bannerForm.name}
+                  onChange={(v) => setBannerForm((f) => ({ ...f, name: v }))}
+                  placeholder="e.g. Character Event Warp" />
+                <div className="banner-form-row2">
+                  <Input label="End date" type="date" value={bannerForm.date}
+                    onChange={(v) => setBannerForm((f) => ({ ...f, date: v }))} />
+                  <Input label="Pull goal" type="number" value={bannerForm.goalPulls}
+                    onChange={(v) => setBannerForm((f) => ({ ...f, goalPulls: v }))}
+                    placeholder="e.g. 90" />
                 </div>
-                <div className="dash-banner-forecast-row">
-                  <span>Gain by then</span>
-                  <span className="num">+{fmt(stats.perDay * (active.bannerDaysFromNow ?? 14), 0)} pulls</span>
-                </div>
-                <div className="dash-banner-meter">
-                  <div className="dash-banner-meter-fill"
-                    style={{ width: `${Math.min(100, (window.forecastBy(stats.current, stats.perDay, active.bannerDaysFromNow ?? 14) / 90) * 100)}%` }} />
-                </div>
-                <div className="dash-banner-forecast-pity">
-                  {(() => {
-                    const f = window.forecastBy(stats.current, stats.perDay, active.bannerDaysFromNow ?? 14);
-                    if (f >= 90) return <><span className="dash-banner-pity-on">●</span> On track for guaranteed (90)</>;
-                    if (f >= 60) return <><span className="dash-banner-pity-mid">●</span> Likely to soft-pity (60+)</>;
-                    return <><span className="dash-banner-pity-off">●</span> Below soft-pity — log gains often</>;
-                  })()}
+                <div style={{ display: 'flex', gap: 8 }}>
+                  <Button onClick={saveBanner} disabled={!bannerForm.date || !bannerForm.goalPulls}>Set goal</Button>
+                  {active.banner && (
+                    <button className="btn btn-ghost" onClick={() => setEditingBanner(false)}>Cancel</button>
+                  )}
                 </div>
               </div>
-            </div>
+            ) : (() => {
+              const daysUntil = Math.max(0, Math.round((new Date(active.banner.date) - new Date()) / 86400000));
+              const projected = window.forecastBy(stats.current, stats.perDay, daysUntil);
+              const goal = active.banner.goalPulls;
+              const onTrack = projected >= goal;
+              return (
+                <div className="dash-banner-body">
+                  <div className="dash-banner-days">
+                    <span className="num">{daysUntil}</span>
+                    <span className="dash-banner-days-l">days</span>
+                  </div>
+                  <div className="dash-banner-forecast">
+                    <div className="dash-banner-forecast-row">
+                      <span>Projected</span>
+                      <span className="num">{fmt(projected, 1)} pulls</span>
+                    </div>
+                    <div className="dash-banner-forecast-row">
+                      <span>Goal</span>
+                      <span className="num">{fmt(goal, 0)} pulls</span>
+                    </div>
+                    <div className="dash-banner-meter">
+                      <div className="dash-banner-meter-fill"
+                        style={{ width: `${Math.min(100, (projected / goal) * 100)}%` }} />
+                    </div>
+                    <div className="dash-banner-forecast-pity">
+                      {onTrack
+                        ? <><span className="dash-banner-pity-on">●</span> On track</>
+                        : <><span className="dash-banner-pity-off">●</span> Need {fmt(goal - projected, 1)} more</>}
+                    </div>
+                    <button className="btn btn-ghost btn-sm" style={{ marginTop: 6, alignSelf: 'flex-start' }} onClick={clearBanner}>Clear</button>
+                  </div>
+                </div>
+              );
+            })()}
           </Card>
 
           <Card className="dash-res" padding="lg">

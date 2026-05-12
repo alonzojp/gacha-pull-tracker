@@ -161,7 +161,7 @@ function fmtSigned(n, dp = 0) {
 
 // ─── Chart ─────────────────────────────────────────────────────────────────
 
-function LineChart({ data, width = 720, height = 240, forecastDays = 0, perDay = 0, label = 'Pulls' }) {
+function LineChart({ data, width = 720, height = 240, forecastDays = 0, perDay = 0, label = 'Pulls', bannerDate = null, goalPulls = 0 }) {
   const ref = useRef(null);
   const [hover, setHover] = useState(null);
 
@@ -185,11 +185,14 @@ function LineChart({ data, width = 720, height = 240, forecastDays = 0, perDay =
         proj.push({ t, y: last.y + ((t - last.t) / dayMs) * perDay });
       }
     }
+    const bTime = bannerDate ? new Date(bannerDate).getTime() : 0;
+    const tEnd = Math.max(tLast + forecastDays * dayMs, bTime);
     const ys = [...real.map((p) => p.y), ...proj.map((p) => p.y)];
-    const yMax = Math.max(...ys) * 1.08;
+    if (goalPulls > 0) ys.push(goalPulls);
+    const yMax = Math.max(...ys) * 1.12;
     const yMin = 0;
     return { real, proj, xMin: t0, xMax: tEnd, yMin, yMax };
-  }, [data, forecastDays, perDay]);
+  }, [data, forecastDays, perDay, bannerDate, goalPulls]);
 
   const sx = (t) => padding.left + ((t - points.xMin) / (points.xMax - points.xMin || 1)) * w;
   const sy = (y) => padding.top + h - ((y - points.yMin) / (points.yMax - points.yMin || 1)) * h;
@@ -260,6 +263,28 @@ function LineChart({ data, width = 720, height = 240, forecastDays = 0, perDay =
         {points.real.length === 1 && (
           <circle cx={sx(points.real[0].t)} cy={sy(points.real[0].y)} r="5" className="chart-dot" />
         )}
+        {goalPulls > 0 && points.real.length > 0 && (
+          <g>
+            <line x1={padding.left} x2={width - padding.right} y1={sy(goalPulls)} y2={sy(goalPulls)}
+              stroke="var(--success)" strokeWidth="1.5" strokeDasharray="5 3" opacity="0.65" />
+            <text x={padding.left + 4} y={sy(goalPulls) - 5} className="chart-axis" fill="var(--success)" opacity="0.85">
+              {'Goal: ' + fmt(goalPulls)}
+            </text>
+          </g>
+        )}
+        {bannerDate && points.real.length > 0 && (() => {
+          const bt = new Date(bannerDate).getTime();
+          if (bt <= points.xMax) return (
+            <g>
+              <line x1={sx(bt)} x2={sx(bt)} y1={padding.top} y2={height - padding.bottom}
+                stroke="var(--accent)" strokeWidth="1.5" strokeDasharray="5 3" opacity="0.5" />
+              <text x={sx(bt) + 4} y={padding.top + 12} className="chart-axis" fill="var(--accent)" opacity="0.8">
+                {new Date(bannerDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+              </text>
+            </g>
+          );
+          return null;
+        })()}
         {hover && (
           <g>
             <line x1={sx(hover.t)} x2={sx(hover.t)} y1={padding.top} y2={height - padding.bottom} className="chart-cross" />

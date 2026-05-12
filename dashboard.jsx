@@ -135,97 +135,101 @@ function Dashboard({ store, onUpdate, onSignOut, onOpenSettings, themeName }) {
           </div>
         </section>
 
-        <section className="dash-chart-section">
-          <div className="dash-section-head">
-            <h3>Pull history</h3>
-            <div className="dash-section-legend">
-              <span className="legend-dot legend-real" /> Logged
-              <span className="legend-dot legend-proj" /> Forecast
-            </div>
-          </div>
-          <Card padding="lg" className="dash-chart-card">
-            <LineChart data={snapshots} width={760} height={260}
-              forecastDays={Math.max(active.banner?.date ? Math.max(0, Math.round((new Date(active.banner.date) - new Date()) / 86400000)) : 14, 7)}
-              perDay={stats.perDay}
-              bannerDate={active.banner?.date || null}
-              goalPulls={active.banner?.goalPulls || 0} />
-          </Card>
-        </section>
-
-        <section className="dash-bottom">
-          <Card className="dash-banner" padding="lg">
-            <div className="dash-banner-head">
-              <span className="dash-banner-tag">Banner goal</span>
-              {active.banner && <span className="dash-banner-name">{active.banner.name || 'Unnamed'}</span>}
-              <button className="btn btn-ghost btn-sm" onClick={openBannerModal}>
-                {active.banner ? 'Edit' : 'Set one'}
-              </button>
-            </div>
-            {active.banner ? (() => {
-              const daysUntil = Math.max(0, Math.round((new Date(active.banner.date) - new Date()) / 86400000));
-              const projected = window.forecastBy(stats.current, stats.perDay, daysUntil);
-              const goal = active.banner.goalPulls;
-              return (
-                <div className="dash-banner-body">
-                  <div className="dash-banner-days">
-                    <span className="num">{daysUntil}</span>
-                    <span className="dash-banner-days-l">days</span>
-                  </div>
-                  <div className="dash-banner-forecast">
-                    <div className="dash-banner-forecast-row">
-                      <span>Projected</span>
-                      <span className="num">{fmt(projected, 1)} pulls</span>
-                    </div>
-                    <div className="dash-banner-forecast-row">
-                      <span>Goal</span>
-                      <span className="num">{fmt(goal, 0)} pulls</span>
-                    </div>
-                    <div className="dash-banner-meter">
-                      <div className="dash-banner-meter-fill"
-                        style={{ width: `${Math.min(100, (projected / goal) * 100)}%` }} />
-                    </div>
-                    <div className="dash-banner-forecast-pity">
-                      {projected >= goal
-                        ? <><span className="dash-banner-pity-on">●</span> On track</>
-                        : <><span className="dash-banner-pity-off">●</span> Need {fmt(goal - projected, 1)} more</>}
-                    </div>
-                  </div>
+        <div className="dash-content">
+          <div className="dash-left">
+            <section className="dash-chart-section">
+              <div className="dash-section-head">
+                <h3>Pull history</h3>
+                <div className="dash-section-legend">
+                  <span className="legend-dot legend-real" /> Logged
+                  <span className="legend-dot legend-proj" /> Forecast
                 </div>
-              );
-            })() : (
-              <div className="banner-empty">Set a date and pull target to see your forecast on the chart.</div>
-            )}
-          </Card>
+              </div>
+              <Card padding="lg" className="dash-chart-card">
+                <LineChart data={snapshots} width={760} height={260}
+                  forecastDays={Math.max(active.banner?.date ? Math.max(0, Math.round((new Date(active.banner.date) - new Date()) / 86400000)) : 14, 7)}
+                  perDay={stats.perDay}
+                  bannerDate={active.banner?.date || null}
+                  goalPulls={active.banner?.goalPulls || 0} />
+              </Card>
+            </section>
 
-          <Card className="dash-res" padding="lg">
-            <div className="dash-section-head dash-section-head-inner">
-              <h3>Current resources</h3>
-              <button className="btn btn-ghost btn-sm" onClick={() => setShowLog(true)}>Update</button>
-            </div>
-            <div className="dash-res-list">
-              {active.resources.map((r) => {
-                const c = Number(active.latest?.[r.id] ?? (snapshots.length ? snapshots[snapshots.length - 1].counts[r.id] : 0) ?? 0);
-                const inPulls = c / r.perPull;
+            <Card className="dash-banner" padding="lg">
+              <div className="dash-banner-head">
+                <span className="dash-banner-tag">Banner goal</span>
+                {active.banner && <span className="dash-banner-name">{active.banner.name || 'Unnamed'}</span>}
+                <button className="btn btn-ghost btn-sm" onClick={openBannerModal}>
+                  {active.banner ? 'Edit' : 'Set one'}
+                </button>
+              </div>
+              {active.banner ? (() => {
+                const daysUntil = Math.max(0, Math.round((new Date(active.banner.date) - new Date()) / 86400000));
+                const projected = window.forecastBy(stats.current, stats.perDay, daysUntil);
+                const goal = active.banner.goalPulls;
                 return (
-                  <div className="dash-res-row" key={r.id}>
-                    <div className="dash-res-name">
-                      <span className="dash-res-icon"><ResourceIcon kind={r.icon || 'gem'} size={24} hue={active.hue} /></span>
-                      <span className="dash-res-namecol">
-                        <span>{r.name}</span>
-                        <span className="dash-res-hint">{r.hint}</span>
-                      </span>
+                  <div className="dash-banner-body">
+                    <div className="dash-banner-days">
+                      <span className="num">{daysUntil}</span>
+                      <span className="dash-banner-days-l">days</span>
                     </div>
-                    <div className="dash-res-count num">{fmt(c)}</div>
-                    <div className="dash-res-pulls">
-                      <span className="num">{fmt(inPulls, 1)}</span>
-                      <span className="dash-res-pulls-l">pulls</span>
+                    <div className="dash-banner-forecast">
+                      <div className="dash-banner-forecast-row">
+                        <span>Projected</span>
+                        <span className="num">{fmt(projected, 1)} pulls</span>
+                      </div>
+                      <div className="dash-banner-forecast-row">
+                        <span>Goal</span>
+                        <span className="num">{fmt(goal, 0)} pulls</span>
+                      </div>
+                      <div className="dash-banner-meter">
+                        <div className="dash-banner-meter-fill"
+                          style={{ width: `${Math.min(100, (projected / goal) * 100)}%` }} />
+                      </div>
+                      <div className="dash-banner-forecast-pity">
+                        {projected >= goal
+                          ? <><span className="dash-banner-pity-on">●</span> On track</>
+                          : <><span className="dash-banner-pity-off">●</span> Need {fmt(goal - projected, 1)} more</>}
+                      </div>
                     </div>
                   </div>
                 );
-              })}
-            </div>
-          </Card>
-        </section>
+              })() : (
+                <div className="banner-empty">Set a date and pull target to see your forecast on the chart.</div>
+              )}
+            </Card>
+          </div>
+
+          <div className="dash-right">
+            <Card className="dash-res" padding="lg">
+              <div className="dash-section-head dash-section-head-inner">
+                <h3>Current resources</h3>
+                <button className="btn btn-ghost btn-sm" onClick={() => setShowLog(true)}>Update</button>
+              </div>
+              <div className="dash-res-list">
+                {active.resources.map((r) => {
+                  const c = Number(active.latest?.[r.id] ?? (snapshots.length ? snapshots[snapshots.length - 1].counts[r.id] : 0) ?? 0);
+                  const inPulls = c / r.perPull;
+                  return (
+                    <div className="dash-res-row" key={r.id}>
+                      <div className="dash-res-name">
+                        <span className="dash-res-icon"><ResourceIcon kind={r.icon || 'gem'} size={24} hue={active.hue} /></span>
+                        <span className="dash-res-namecol">
+                          <span>{r.name}</span>
+                          <span className="dash-res-hint">{r.hint}</span>
+                        </span>
+                      </div>
+                      <div className="dash-res-count num">{fmt(c)}</div>
+                      <div className="dash-res-pulls">
+                        <span className="num">{fmt(inPulls, 1)}</span>
+                        <span className="dash-res-pulls-l">pulls</span>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </Card>
+          </div>
+        </div>
       </main>
 
       <LogSnapshotModal open={showLog} onClose={() => setShowLog(false)} game={active}

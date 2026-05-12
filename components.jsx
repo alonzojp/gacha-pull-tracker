@@ -239,7 +239,7 @@ function LineChart({ data, width = 720, height = 240, forecastDays = 0, perDay =
 
   return (
     <div className="chart-wrap">
-      <svg ref={ref} viewBox={`0 0 ${width} ${height}`} className="chart"
+      <svg ref={ref} viewBox={`0 0 ${width} ${height}`} preserveAspectRatio="none" className="chart"
         onMouseMove={onMove} onMouseLeave={() => setHover(null)}>
         <defs>
           <linearGradient id="chart-area" x1="0" y1="0" x2="0" y2="1">

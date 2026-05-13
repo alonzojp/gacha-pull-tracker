@@ -188,9 +188,16 @@ function LineChart({ data, width = 720, height = 240, forecastDays = 0, perDay =
     }
     const ys = [...real.map((p) => p.y), ...proj.map((p) => p.y)];
     if (goalPulls > 0) ys.push(goalPulls);
-    const yMax = Math.max(...ys) * 1.12;
+    const rawMax = Math.max(...ys) || 1;
+    // Snap to a nice round top tick so the gap above the top tick is always consistent
+    const rawStep = rawMax / 4;
+    const mag = Math.pow(10, Math.floor(Math.log10(rawStep || 1)));
+    const niceStep = Math.max(1, Math.ceil(rawStep / mag) * mag);
+    const topTick = Math.max(niceStep, Math.ceil(rawMax / niceStep) * niceStep);
+    // yMax is always 8% above the top tick — top tick always at the same relative position
+    const yMax = topTick * 1.08;
     const yMin = 0;
-    return { real, proj, xMin: t0, xMax: tEnd, yMin, yMax };
+    return { real, proj, xMin: t0, xMax: tEnd, yMin, yMax, niceStep };
   }, [data, forecastDays, perDay, bannerDate, goalPulls]);
 
   const sx = (t) => padding.left + ((t - points.xMin) / (points.xMax - points.xMin || 1)) * w;
@@ -208,11 +215,9 @@ function LineChart({ data, width = 720, height = 240, forecastDays = 0, perDay =
     : '';
 
   const yTicks = useMemo(() => {
-    const rawStep = points.yMax / 4;
-    const mag = Math.pow(10, Math.floor(Math.log10(rawStep || 1)));
-    const step = Math.max(1, Math.ceil(rawStep / mag) * mag);
+    const step = points.niceStep || 1;
     return [0, 1, 2, 3, 4].map((i) => i * step);
-  }, [points.yMax]);
+  }, [points.niceStep]);
 
   const xTicks = useMemo(() => {
     if (!points.real.length) return [];

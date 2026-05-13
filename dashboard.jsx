@@ -138,14 +138,14 @@ function Dashboard({ store, onUpdate, onSignOut, onOpenSettings, themeName }) {
         <div className="dash-content">
           <div className="dash-left">
             <section className="dash-chart-section">
-              <div className="dash-section-head">
-                <h3>Pull history</h3>
-                <div className="dash-section-legend">
-                  <span className="legend-dot legend-real" /> Logged
-                  <span className="legend-dot legend-proj" /> Forecast
-                </div>
-              </div>
               <Card padding="lg" className="dash-chart-card">
+                <div className="dash-section-head dash-section-head-inner">
+                  <h3>Pull history</h3>
+                  <div className="dash-section-legend">
+                    <span className="legend-dot legend-real" /> Logged
+                    <span className="legend-dot legend-proj" /> Forecast
+                  </div>
+                </div>
                 <LineChart data={snapshots} width={760} height={260}
                   forecastDays={Math.max(active.banner?.date ? Math.max(0, Math.round((new Date(active.banner.date) - new Date()) / 86400000)) : 14, 7)}
                   perDay={stats.perDay}

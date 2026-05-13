@@ -898,18 +898,16 @@ input[type='number'].field-input { font-family: var(--font-num); }
 .dash-res-list { display: flex; flex-direction: column; gap: 2px; overflow-y: auto; flex: 1; min-height: 0; }
 .dash-res-row {
   display: grid; grid-template-columns: 1fr auto auto;
-  gap: 18px; align-items: center;
-  padding: 12px 0;
+  gap: 10px; align-items: center;
+  padding: 10px 0;
   border-bottom: 1px solid var(--line);
 }
 .dash-res-row:last-child { border-bottom: 0; }
-.dash-res-name { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
-.dash-res-name > span:first-child { font-size: 14px; font-weight: 500; }
 .dash-res-hint { font-size: 11px; color: var(--text-muted); }
-.dash-res-count { font-size: 15px; color: var(--text); }
+.dash-res-count { font-size: 14px; color: var(--text); }
 .dash-res-pulls {
   display: inline-flex; align-items: baseline; gap: 4px;
-  min-width: 80px; justify-content: flex-end;
+  min-width: 60px; justify-content: flex-end;
 }
 .dash-res-pulls .num { color: var(--accent); font-weight: 600; }
 .dash-res-pulls-l { font-size: 11px; color: var(--text-muted); }

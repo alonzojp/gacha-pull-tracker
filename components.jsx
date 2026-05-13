@@ -195,12 +195,10 @@ function LineChart({ data, width = 720, height = 240, forecastDays = 0, perDay =
     const niceStep = Math.max(1, Math.ceil(rawStep / mag) * mag);
     const topTick = Math.max(niceStep, Math.ceil(rawMax / niceStep) * niceStep);
     // yMax is always 8% above the top tick — top tick always at the same relative position
-    const yMax = topTick * 1.08;
-    const rawMin = Math.min(...real.map((p) => p.y));
-    // Mirror the headroom above the data below it, so the data sits centered.
-    // Clamp to 0 so we never show negative pulls.
-    const yMin = Math.max(0, rawMin - (yMax - rawMin));
-    return { real, proj, xMin: t0, xMax: tEnd, yMin, yMax, niceStep };
+    // Double the top tick so data lands near the middle, bottom always 0
+    const yMax = topTick * 2 * 1.05;
+    const yMin = 0;
+    return { real, proj, xMin: t0, xMax: tEnd, yMin, yMax, niceStep: topTick / 2 };
   }, [data, forecastDays, perDay, bannerDate, goalPulls]);
 
   const sx = (t) => padding.left + ((t - points.xMin) / (points.xMax - points.xMin || 1)) * w;
@@ -261,7 +259,7 @@ function LineChart({ data, width = 720, height = 240, forecastDays = 0, perDay =
         {yTicks.map((y) => (
           <g key={'y' + y}>
             <line x1={padding.left} x2={width - padding.right} y1={sy(y)} y2={sy(y)} className="chart-grid" />
-            <text x={padding.left - 8} y={sy(y) + 4} className="chart-axis" textAnchor="end">{fmt(y)}</text>
+            <text x={padding.left - 8} y={y === 0 ? sy(0) - 5 : sy(y) + 4} className="chart-axis" textAnchor="end">{fmt(y)}</text>
           </g>
         ))}
         {xTicks.map((t) => (

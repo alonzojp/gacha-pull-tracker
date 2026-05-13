@@ -196,7 +196,10 @@ function LineChart({ data, width = 720, height = 240, forecastDays = 0, perDay =
     const topTick = Math.max(niceStep, Math.ceil(rawMax / niceStep) * niceStep);
     // yMax is always 8% above the top tick — top tick always at the same relative position
     const yMax = topTick * 1.08;
-    const yMin = 0;
+    const rawMin = Math.min(...real.map((p) => p.y));
+    // Mirror the headroom above the data below it, so the data sits centered.
+    // Clamp to 0 so we never show negative pulls.
+    const yMin = Math.max(0, rawMin - (yMax - rawMin));
     return { real, proj, xMin: t0, xMax: tEnd, yMin, yMax, niceStep };
   }, [data, forecastDays, perDay, bannerDate, goalPulls]);
 
@@ -207,7 +210,7 @@ function LineChart({ data, width = 720, height = 240, forecastDays = 0, perDay =
     ? points.real.map((p, i) => (i === 0 ? 'M' : 'L') + sx(p.t) + ',' + sy(p.y)).join(' ')
     : '';
   const areaPath = points.real.length
-    ? linePath + ` L${sx(points.real[points.real.length - 1].t)},${sy(0)} L${sx(points.real[0].t)},${sy(0)} Z`
+    ? linePath + ` L${sx(points.real[points.real.length - 1].t)},${sy(points.yMin)} L${sx(points.real[0].t)},${sy(points.yMin)} Z`
     : '';
   const projPath = points.proj.length && points.real.length
     ? `M${sx(points.real[points.real.length - 1].t)},${sy(points.real[points.real.length - 1].y)} ` +
@@ -216,8 +219,11 @@ function LineChart({ data, width = 720, height = 240, forecastDays = 0, perDay =
 
   const yTicks = useMemo(() => {
     const step = points.niceStep || 1;
-    return [0, 1, 2, 3, 4].map((i) => i * step);
-  }, [points.niceStep]);
+    const start = Math.ceil(points.yMin / step) * step;
+    const ticks = [];
+    for (let t = start; t <= points.yMax * 1.001; t += step) ticks.push(t);
+    return ticks;
+  }, [points.niceStep, points.yMin, points.yMax]);
 
   const xTicks = useMemo(() => {
     if (!points.real.length) return [];
